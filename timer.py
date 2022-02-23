@@ -18,26 +18,26 @@ class Timer:
     logger: Optional[Callable[[str], None]] = None
     _start_time: Optional[str] = field(default=None, init=False, repr=False)
     format: str = ""
-    run_count: int = 0
-    index: int = 0
-    order: list = None
+    run_count: ClassVar[int] = 0
+    index: ClassVar[int] = 0
+    order: ClassVar[list] = None
 
     def __post_init__(self) -> None:
         if self.name is None:
-            self.name = "block_" + str(self.__class__.index)
-        self.__class__.index += 1
+            self.name = "block_" + str(Timer.index)
+        Timer.index += 1
         self.timers.setdefault(self.name, "")
-        self.text = self.__class__.run_count * '\t' + "block \"" + self.name + "\": {}"
+        self.text = Timer.run_count * '\t' + "block \"" + self.name + "\": {}"
 
     def start(self) -> None:
-        self.__class__.run_count += 1
+        Timer.run_count += 1
         if self._start_time is not None:
             raise TimerError(f"Timer is running")
 
         self._start_time = str(time.perf_counter())
 
     def stop(self) -> str:
-        self.__class__.run_count -= 1
+        Timer.run_count -= 1
         if self._start_time is None:
             raise TimerError(f"Timer is not running")
 
@@ -54,9 +54,9 @@ class Timer:
             self.logger(self.text.format(elapsed_time))
         if self.name:
             self.timers[self.name] += str(elapsed_time)
-        if not self.__class__.order:
-            self.__class__.order = []
-        self.__class__.order.insert(0, self.text.format(elapsed_time))
+        if not Timer.order:
+            Timer.order = []
+        Timer.order.insert(0, self.text.format(elapsed_time))
         return str(elapsed_time)
 
     def __enter__(self):
